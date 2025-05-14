@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Condition Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 36px;
+            color: #4CAF50;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e2f7e2;
+            border-radius: 8px;
+            display: none;
+        }
+        .condition-name {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .condition-details {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .condition-details strong {
+            font-weight: bold;
+        }
+        .file-input, .webcam-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .file-input:hover, .webcam-button:hover {
+            background-color: #45a049;
+        }
+        video {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Skin Condition Analyzer</h1>
+    <p>Upload a photo of your skin or use your webcam to analyze your skin condition.</p>
+
+    <div>
+        <!-- File Upload -->
+        <input type="file" id="file-upload" class="file-input" accept="image/*">
+    </div>
+    <div>
+        <!-- Webcam Capture Button -->
+        <button id="webcam-btn" class="webcam-button">Capture from Webcam</button>
+    </div>
+    
+    <!-- Webcam Video Stream -->
+    <video id="webcam" width="320" height="240" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <div id="result">
+        <div class="condition-name" id="condition-name"></div>
+        <div class="condition-details">
+            <strong>Symptoms:</strong> <span id="symptoms"></span>
+        </div>
+        <div class="condition-details">
+            <strong>Medication:</strong> <span id="medication"></span>
+        </div>
+        <div class="condition-details">
+            <strong>Advice:</strong> <span id="advice"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+// CSV Data for skin conditions
+const skinConditions = [
+    {condition: "Acne", symptoms: "Red pimples, whiteheads, Blackheads, Cysts, Oiliness, Pustules", medication: "Benzoyl peroxide, Salicylic acid, Retinoids, Oral antibiotics", advice: "Clean skin, avoid squeezing, Use non-comedogenic products"},
+    {condition: "Vitiligo", symptoms: "White patches on skin, Uneven pigmentation, Lightened skin tone, Premature graying of hair", medication: "Topical steroids, UV therapy, Vitamin D supplements", advice: "Avoid sun exposure, Use sunscreen, Consult dermatologist"},
+    {condition: "Actinic Keratosis", symptoms: "Rough, dry patches, scaly skin, Sun damage, Red, irritated skin, Cracked skin", medication: "Cryotherapy, Topical fluorouracil, Imiquimod, Photodynamic therapy", advice: "Consult dermatologist, Avoid direct sunlight"},
+    {condition: "Eczema", symptoms: "Itchy skin, Dry skin, Red patches, Scaling, Inflamed skin, Thickened skin", medication: "Moisturizing creams, Steroid creams, Immunosuppressant drugs", advice: "Avoid scratching, Use gentle skin care products, Keep skin moisturized"},
+    {condition: "Psoriasis", symptoms: "Red patches, Scaly skin, Itchy and inflamed areas, Dry cracked skin, Bleeding from cracked skin", medication: "Topical steroids, Phototherapy, Biologics, Vitamin D analogs", advice: "Avoid triggers, Keep skin moisturized, Use prescribed medication"},
+    {condition: "Rosacea", symptoms: "Facial redness, Pimple-like bumps, Burning sensation, Thickened skin, Small blood vessels visible on skin", medication: "Topical creams, Oral antibiotics, Laser therapy", advice: "Avoid triggers, Use gentle skincare, Avoid hot beverages"},
+    {condition: "Hives", symptoms: "Red welts, Itchy skin, Swollen skin, Raised bumps, Blisters", medication: "Antihistamines, Corticosteroids", advice: "Avoid triggers, Cool compress, Avoid scratching"},
+    {condition: "Shingles", symptoms: "Painful rash, Blisters, Red patches, Sensitivity, Fever", medication: "Antiviral medications, Pain relievers, Topical creams", advice: "Avoid scratching, Keep the area clean, Consult a doctor early"},
+    // Add more conditions as needed...
+];
+
+// Function to analyze the uploaded image (mock implementation for now)
+function analyzeImage(imageData) {
+    // Simulating analysis by randomly selecting a condition
+    const randomCondition = skinConditions[Math.floor(Math.random() * skinConditions.length)];
+    
+    document.getElementById('condition-name').textContent = randomCondition.condition;
+    document.getElementById('symptoms').textContent = randomCondition.symptoms;
+    document.getElementById('medication').textContent = randomCondition.medication;
+    document.getElementById('advice').textContent = randomCondition.advice;
+
+    // Show result
+    document.getElementById('result').style.display = 'block';
+}
+
+// File upload listener
+document.getElementById('file-upload').addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            const img = new Image();
+            img.src = reader.result;
+            img.onload = function () {
+                analyzeImage(img);
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Webcam capture logic
+document.getElementById('webcam-btn').addEventListener('click', function () {
+    const videoElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('canvas');
+    const context = canvasElement.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            videoElement.srcObject = stream;
+            videoElement.style.display = 'block';
+            
+            setTimeout(() => {
+                context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvasElement.toDataURL('image/png');
+                analyzeImage(imageData);
+                stream.getTracks().forEach(track => track.stop()); // Stop the webcam after capturing
+                videoElement.style.display = 'none';
+            }, 2000); // Capture after 2 seconds
+        })
+        .catch(error => console.error('Error accessing webcam:', error));
+});
+</script>
+
+</body>
+</html>
